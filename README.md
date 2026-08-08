@@ -79,6 +79,21 @@ flowchart TB
 
 ---
 
+## 🧠 AI Prompt Engineering & Guardrail Pipeline
+
+ResuMaxxing enforces strict structural and anti-hallucination guardrails across all OpenAI model invocations:
+
+1. **Strict JSON Schema Enforcement:**
+   * All generative endpoints enforce structured outputs using `response_format={"type": "json_object"}` to guarantee deterministic response parsing.
+2. **Exact 1-to-1 Input-to-Output Matching:**
+   * Bullet customization algorithms strictly extract individual sentences/bullets from raw resumes and match the exact output count, prohibiting bullet merging or splitting.
+3. **Anti-Hallucination & Vocabulary Constraints:**
+   * System prompts explicitly forbid introducing unstated technologies, skills, or metrics. Synonym replacement is strictly bound to exact action matches in target job descriptions.
+4. **Domain Isolation:**
+   * Prompts prohibit converting domain-specific achievements (e.g., Frontend achievements into Backend achievements) to maintain resume authenticity.
+
+---
+
 ## 💳 Enterprise Asynchronous Billing Architecture (Lemon Squeezy)
 
 ResuMaxxing implements an event-driven, non-blocking payment processing architecture featuring **constant-time HMAC signature verification** and **idempotent asynchronous background workers**:
@@ -116,6 +131,19 @@ sequenceDiagram
 
 ---
 
+## 🔒 Enterprise Privacy, GDPR Scrubbing & IDOR Isolation
+
+1. **Automated GDPR Right-to-be-Forgotten (Svix Webhooks):**
+   * Listens for Clerk `user.deleted` cryptographic webhooks (`/api/webhooks/clerk`). Upon verification via Svix, the system automatically triggers cascade deletions across all database tables (`delete_user`), purging user snapshots, activity telemetry, tracked jobs, and resume versions.
+2. **Strict IDOR (Insecure Direct Object Reference) Prevention:**
+   * Every database interaction enforces owner isolation at the SQL query level:
+     ```python
+     select(TrackedJob).filter(TrackedJob.id == job_id, TrackedJob.user_id == current_user["id"])
+     ```
+   * Malicious attempts to read, modify, or delete another user's job target or resume version return an immediate HTTP `404 Not Found`.
+
+---
+
 ## 🎯 Feature Capability & System Architecture Mapping
 
 The following matrix illustrates how user capabilities map directly to underlying API endpoints, processing engines, and infrastructure layers:
@@ -128,35 +156,6 @@ The following matrix illustrates how user capabilities map directly to underlyin
 | **Technical Skill Gap Analysis** | Job Tracking Hub | `POST /resumes/skill-gap` | Persistent Gap Engine (`SkillGap` model) |
 | **Job Description URL Extraction** | Target URL Input | `POST /jobs/extract-url` | Async Scraper + BeautifulSoup Parser |
 | **Editable DOCX Export** | Vault Export Action | `POST /resumes/{id}/export-docx` | `python-docx` buffer stream (Tier-guarded) |
-
----
-
-## 🧠 AI Prompt Engineering & Guardrail Pipeline
-
-ResuMaxxing enforces strict structural and anti-hallucination guardrails across all OpenAI model invocations:
-
-1. **Strict JSON Schema Enforcement:**
-   * All generative endpoints enforce structured outputs using `response_format={"type": "json_object"}` to guarantee deterministic response parsing.
-2. **Exact 1-to-1 Input-to-Output Matching:**
-   * Bullet customization algorithms strictly extract individual sentences/bullets from raw resumes and match the exact output count, prohibiting bullet merging or splitting.
-3. **Anti-Hallucination & Vocabulary Constraints:**
-   * System prompts explicitly forbid introducing unstated technologies, skills, or metrics. Synonym replacement is strictly bound to exact action matches in target job descriptions.
-4. **Domain Isolation:**
-   * Prompts prohibit converting domain-specific achievements (e.g., Frontend achievements into Backend achievements) to maintain resume authenticity.
-
----
-
-## 🛡️ Rate Limiting & DoS Protection Matrix
-
-To defend backend services against abusive requests and resource exhaustion, ResuMaxxing implements granular endpoint rate limiting via `SlowAPI` and payload byte-stream controls:
-
-| Endpoint | Target Route | Rate Limit | Protection Strategy |
-| :--- | :--- | :--- | :--- |
-| **Guest Tailor** | `POST /resumes/guest-tailor` | `5 / min` | Public IP Rate Shield |
-| **Guest Roast** | `POST /resumes/guest-roast` | `5 / min` | PDF Type Check + 10MB Stream Guard |
-| **Resume Tailor** | `POST /resumes/generate` | `10 / min` | User ID Limiter + Quota Check + IDOR Guard |
-| **DOCX Export** | `POST /resumes/{id}/export-docx` | `30 / min` | Subscription Tier Verification (`premium_1`/`premium_2`) |
-| **Job Creation** | `POST /jobs/` | `30 / min` | Input Sanitization (`sanitize_text`, `sanitize_url`) |
 
 ---
 
@@ -225,6 +224,33 @@ erDiagram
 
 ---
 
+## ⚡ Performance & High-Concurrency Design
+
+1. **Decoupled JWKS Token Verification:**
+   * Instead of making remote authentication calls per HTTP request, the backend warm-boots by fetching RSA public keys from Clerk once at startup and caches them. Token verification is executed locally in CPU microsecond speeds.
+2. **Non-Blocking Telemetry & Activity Logging:**
+   * Activity logs and telemetry events (`TARGET_ACQUIRED`, `ZAP_GENERATED`) are dispatched asynchronously, preventing database lock contention from delaying primary API responses.
+3. **Optimized PDF Parsing:**
+   * Text extraction during resume roasts avoids expensive vector-layout parsing steps, eliminating CPU freezes on complex PDF documents.
+4. **Async Database Connections (`aiomysql`):**
+   * Uses non-blocking asynchronous pool connections with SQLAlchemy 2.0 to handle high request concurrency without thread pool starvation.
+
+---
+
+## 🛡️ Rate Limiting & DoS Protection Matrix
+
+To defend backend services against abusive requests and resource exhaustion, ResuMaxxing implements granular endpoint rate limiting via `SlowAPI` and payload byte-stream controls:
+
+| Endpoint | Target Route | Rate Limit | Protection Strategy |
+| :--- | :--- | :--- | :--- |
+| **Guest Tailor** | `POST /resumes/guest-tailor` | `5 / min` | Public IP Rate Shield |
+| **Guest Roast** | `POST /resumes/guest-roast` | `5 / min` | PDF Type Check + 10MB Stream Guard |
+| **Resume Tailor** | `POST /resumes/generate` | `10 / min` | User ID Limiter + Quota Check + IDOR Guard |
+| **DOCX Export** | `POST /resumes/{id}/export-docx` | `30 / min` | Subscription Tier Verification (`premium_1`/`premium_2`) |
+| **Job Creation** | `POST /jobs/` | `30 / min` | Input Sanitization (`sanitize_text`, `sanitize_url`) |
+
+---
+
 ## 🪵 Production Structured Telemetry & Observability Pipeline
 
 ResuMaxxing implements production-grade structured logging via **`structlog`** (`logging_config.py`):
@@ -233,24 +259,20 @@ ResuMaxxing implements production-grade structured logging via **`structlog`** (
 
 ---
 
-## 🔒 Enterprise Privacy, GDPR Scrubbing & IDOR Isolation
-
-1. **Automated GDPR Right-to-be-Forgotten (Svix Webhooks):**
-   * Listens for Clerk `user.deleted` cryptographic webhooks (`/api/webhooks/clerk`). Upon verification via Svix, the system automatically triggers cascade deletions across all database tables (`delete_user`), purging user snapshots, activity telemetry, tracked jobs, and resume versions.
-2. **Strict IDOR (Insecure Direct Object Reference) Prevention:**
-   * Every database interaction enforces owner isolation at the SQL query level:
-     ```python
-     select(TrackedJob).filter(TrackedJob.id == job_id, TrackedJob.user_id == current_user["id"])
-     ```
-   * Malicious attempts to read, modify, or delete another user's job target or resume version return an immediate HTTP `404 Not Found`.
-
----
-
 ## 🏛️ Master Vault & Snapshot State Engine
 
 ResuMaxxing incorporates a dedicated **Vault Engine** (`vault_crud.py`) to manage versioning and data snapshots:
 - **Immutable Snapshots (`VaultSnapshot`):** Users can save point-in-time snapshots of master resume states into JSON structures, allowing version comparisons and rollbacks.
 - **Telemetry HUD (`ActivityLog`):** Non-blocking system telemetry captures user application velocity (`TARGET_ACQUIRED`, `TARGET_STATUS_UPDATED`, `ZAP_GENERATED`, `DOCX_EXPORTED`), rendering a real-time activity feed on the dashboard.
+
+---
+
+## 📱 Cross-Platform & Mobile Architecture (Capacitor)
+
+ResuMaxxing is engineered to compile seamlessly into native mobile applications:
+- **Unified Codebase:** Shared Next.js component layer utilized across Web and Mobile.
+- **Native Capacitor Bridge:** Provides native access to device haptics (`@capacitor/haptics`), native file sharing (`@capacitor/share`), secure preferences storage (`@capacitor/preferences`), and document printing (`@capgo/capacitor-printer`).
+- **Capacitor-Safe Content Security Policy:** Dynamic CSP middleware accommodating `capacitor://localhost` (iOS) and `http://localhost` (Android) origins with strict frame-ancestor shielding (`DENY`).
 
 ---
 
@@ -270,28 +292,6 @@ ResuMaxxing incorporates a dedicated **Vault Engine** (`vault_crud.py`) to manag
 | **Logging & Telemetry** | **Structlog (JSON Logging)** | Structured production logging & ISO context rendering |
 | **Rate Limiting** | **SlowAPI / Redis Ready** | IP and User ID based API rate throttling |
 | **Billing Integration**| **Lemon Squeezy API & Svix Webhooks** | Subscription tiering (`premium_1`, `premium_2`) & HMAC events |
-
----
-
-## ⚡ Performance & High-Concurrency Design
-
-1. **Decoupled JWKS Token Verification:**
-   * Instead of making remote authentication calls per HTTP request, the backend warm-boots by fetching RSA public keys from Clerk once at startup and caches them. Token verification is executed locally in CPU microsecond speeds.
-2. **Non-Blocking Telemetry & Activity Logging:**
-   * Activity logs and telemetry events (`TARGET_ACQUIRED`, `ZAP_GENERATED`) are dispatched asynchronously, preventing database lock contention from delaying primary API responses.
-3. **Optimized PDF Parsing:**
-   * Text extraction during resume roasts avoids expensive vector-layout parsing steps, eliminating CPU freezes on complex PDF documents.
-4. **Async Database Connections (`aiomysql`):**
-   * Uses non-blocking asynchronous pool connections with SQLAlchemy 2.0 to handle high request concurrency without thread pool starvation.
-
----
-
-## 📱 Cross-Platform & Mobile Architecture (Capacitor)
-
-ResuMaxxing is engineered to compile seamlessly into native mobile applications:
-- **Unified Codebase:** Shared Next.js component layer utilized across Web and Mobile.
-- **Native Capacitor Bridge:** Provides native access to device haptics (`@capacitor/haptics`), native file sharing (`@capacitor/share`), secure preferences storage (`@capacitor/preferences`), and document printing (`@capgo/capacitor-printer`).
-- **Capacitor-Safe Content Security Policy:** Dynamic CSP middleware accommodating `capacitor://localhost` (iOS) and `http://localhost` (Android) origins with strict frame-ancestor shielding (`DENY`).
 
 ---
 
