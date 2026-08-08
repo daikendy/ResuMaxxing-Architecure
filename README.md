@@ -1,6 +1,5 @@
 # 🚀 ResuMaxxing Architecture & System Design
 
-![ResuMaxxing Banner](./assets/banner.png)
 
 > **The Industrial-Grade AI Career Engine.**  
 > ResuMaxxing is an automated, AI-driven career operating system designed for high-velocity resume tailoring, job application tracking, document roasting/parsing, and automated resume export.
@@ -154,6 +153,46 @@ erDiagram
 
 ---
 
+## 🔄 DevOps, CI/CD & Deployment Pipeline Architecture
+
+ResuMaxxing implements an automated, event-driven CI/CD delivery workflow spanning code push, automated migrations, edge deployments, and cross-platform native mobile compilation.
+
+```mermaid
+flowchart LR
+    %% Styles
+    classDef git fill:#0f172a,stroke:#f97316,stroke-width:2px,color:#fff;
+    classDef vercel fill:#171717,stroke:#38bdf8,stroke-width:2px,color:#fff;
+    classDef railway fill:#1e1b4b,stroke:#a855f7,stroke-width:2px,color:#fff;
+    classDef mobile fill:#1c1917,stroke:#22c55e,stroke-width:2px,color:#fff;
+
+    GIT["🐙 GitHub Repository\n(Main Branch Commit / PR)"]:::git
+
+    subgraph FRONTEND_CICD ["🌐 Web CI/CD Pipeline (Vercel)"]
+        V_BUILD["⚙️ Next.js Production Build"]:::vercel
+        V_EDGE["🚀 Global Edge CDN Deployment"]:::vercel
+    end
+
+    subgraph BACKEND_CICD ["⚡ Backend CI/CD Pipeline (Railway)"]
+        R_BUILD["📦 Async FastAPI Container Build"]:::railway
+        R_MIGRATE["🗄️ Automated Alembic Migration"]:::railway
+        R_SERVER["⚡ Uvicorn ASGI Live Deployment"]:::railway
+    end
+
+    subgraph MOBILE_CICD ["📱 Native Mobile Pipeline"]
+        CAP_SYNC["🔄 Capacitor Sync Bridge"]:::mobile
+        BUILD_IOS["🍎 iOS App Bundle (.ipa)"]:::mobile
+        BUILD_AND["🤖 Android Package (.apk / .aab)"]:::mobile
+    end
+
+    GIT -->|"Trigger Web Build"| V_BUILD --> V_EDGE
+    GIT -->|"Trigger Backend Build"| R_BUILD --> R_MIGRATE --> R_SERVER
+    V_BUILD -->|"Mobile Sync Asset Output"| CAP_SYNC
+    CAP_SYNC --> BUILD_IOS
+    CAP_SYNC --> BUILD_AND
+```
+
+---
+
 ## ⚡ Performance & High-Concurrency Design
 
 1. **Decoupled JWKS Token Verification:**
@@ -164,43 +203,6 @@ erDiagram
    * Text extraction during resume roasts avoids expensive vector-layout parsing steps, eliminating CPU freezes on complex PDF documents.
 4. **Async Database Connections (`aiomysql`):**
    * Uses non-blocking asynchronous pool connections with SQLAlchemy 2.0 to handle high request concurrency without thread pool starvation.
-
----
-
-## 💻 Local Development & Quick Start
-
-```bash
-# 1. Clone the Architecture / Code Repository
-git clone https://github.com/daikendy/ResumeMaxxing.git
-cd ResumeMaxxing
-
-# 2. Backend Environment Setup (FastAPI)
-cd backend
-python -m venv venv
-# On Windows:
-./venv/Scripts/activate
-# On Linux/macOS:
-# source venv/bin/activate
-
-pip install -r requirements.txt
-alembic upgrade head
-python main.py
-
-# 3. Frontend Environment Setup (Next.js)
-cd ../frontend
-npm install
-npm run dev
-```
-
----
-
-## 🚀 Deployment & DevOps Architecture
-
-ResuMaxxing utilizes an automated continuous deployment pipeline:
-- **Frontend & Web Assets:** Deployed on **Vercel** with global edge caching and automatic SSL.
-- **Backend ASGI Engine:** Deployed on **Railway** utilizing high-concurrency Uvicorn workers and environment isolation.
-- **Database Layer:** Managed MySQL / PostgreSQL with connection pooling and automated Alembic schema migration triggers on deploy.
-- **Mobile Builds:** Compiled via Capacitor CLI targeting Android (`.apk` / `.aab`) and iOS (`.ipa`) release targets.
 
 ---
 
