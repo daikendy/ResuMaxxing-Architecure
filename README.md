@@ -79,6 +79,35 @@ flowchart TB
 
 ---
 
+## 🧠 AI Prompt Engineering & Guardrail Pipeline
+
+ResuMaxxing enforces strict structural and anti-hallucination guardrails across all OpenAI model invocations:
+
+1. **Strict JSON Schema Enforcement:**
+   * All generative endpoints enforce structured outputs using `response_format={"type": "json_object"}` to guarantee deterministic response parsing.
+2. **Exact 1-to-1 Input-to-Output Matching:**
+   * Bullet customization algorithms strictly extract individual sentences/bullets from raw resumes and match the exact output count, prohibiting bullet merging or splitting.
+3. **Anti-Hallucination & Vocabulary Constraints:**
+   * System prompts explicitly forbid introducing unstated technologies, skills, or metrics. Synonym replacement is strictly bound to exact action matches in target job descriptions.
+4. **Domain Isolation:**
+   * Prompts prohibit converting domain-specific achievements (e.g., Frontend achievements into Backend achievements) to maintain resume authenticity.
+
+---
+
+## 🛡️ Rate Limiting & DoS Protection Matrix
+
+To defend backend services against abusive requests and resource exhaustion, ResuMaxxing implements granular endpoint rate limiting via `SlowAPI` and payload byte-stream controls:
+
+| Endpoint | Target Route | Rate Limit | Protection Strategy |
+| :--- | :--- | :--- | :--- |
+| **Guest Tailor** | `POST /resumes/guest-tailor` | `5 / min` | Public IP Rate Shield |
+| **Guest Roast** | `POST /resumes/guest-roast` | `5 / min` | PDF Type Check + 10MB Stream Guard |
+| **Resume Tailor** | `POST /resumes/generate` | `10 / min` | User ID Limiter + Quota Check + IDOR Guard |
+| **DOCX Export** | `POST /resumes/{id}/export-docx` | `30 / min` | Subscription Tier Verification (`premium_1`/`premium_2`) |
+| **Job Creation** | `POST /jobs/` | `30 / min` | Input Sanitization (`sanitize_text`, `sanitize_url`) |
+
+---
+
 ## 📊 Entity-Relationship & Data Model Overview
 
 ```mermaid
