@@ -1,7 +1,5 @@
 # 🚀 ResuMaxxing Architecture & System Design
 
-![ResuMaxxing Banner](./assets/banner.png)
-
 > **The Industrial-Grade AI Career Engine.**  
 > ResuMaxxing is an automated, AI-driven career operating system designed for high-velocity resume tailoring, job application tracking, and automated document generation.
 
@@ -10,8 +8,8 @@
 ## 📌 Executive Summary & Architecture Overview
 
 ResuMaxxing follows a decoupled **Client-Server & Micro-service Ready Architecture**:
-- **Frontend Layer:** Built with **Next.js 15 App Router**, React 19, TypeScript, Vanilla CSS (Design System Tokens), and integrated with **Capacitor** for cross-platform deployment (Web, iOS, Android).
-- **Backend Core:** Asynchronous **FastAPI** service operating on Python 3.12, utilizing **SQLAlchemy 2.0 (Async)** and **Alembic** for migrations.
+- **Frontend Layer:** Built with **Next.js App Router**, React, TypeScript, Vanilla CSS (Design System Tokens), and integrated with **Capacitor** for cross-platform deployment (Web, iOS, Android).
+- **Backend Core:** Asynchronous **FastAPI** service operating on Python 3, utilizing **SQLAlchemy (Async)** and **Alembic** for migrations.
 - **Identity & Authentication:** **Clerk Identity Platform** (JWT-based, decoupled RSA JWKS key verification).
 - **AI Engine:** Integration with **OpenAI GPT-4o / Chat Completion Models** for structured JSON schema generation and prompt engineering.
 - **Database & Storage:** **MySQL / PostgreSQL** relational schema for transactional integrity, storing encrypted profiles, tailored resumes, and job interaction logs.
@@ -22,48 +20,58 @@ ResuMaxxing follows a decoupled **Client-Server & Micro-service Ready Architectu
 ## 🏗️ High-Level System Architecture Diagram
 
 ```mermaid
-graph TD
-    subgraph Client Layer
-        A[Next.js Web Client]
-        B[Mobile App - Capacitor iOS/Android]
+flowchart TB
+    %% Styling Definitions
+    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef gateway fill:#0f172a,stroke:#818cf8,stroke-width:2px,color:#f8fafc;
+    classDef service fill:#1e1b4b,stroke:#c084fc,stroke-width:2px,color:#f8fafc;
+    classDef infra fill:#1c1917,stroke:#f43f5e,stroke-width:2px,color:#f8fafc;
+
+    subgraph CLIENT_LAYER ["📱 Client Layer (Cross-Platform)"]
+        direction LR
+        WEB["🌐 Next.js Web Application"]:::client
+        MOBILE["📱 Mobile Application (Capacitor iOS / Android)"]:::client
     end
 
-    subgraph Authentication & Gateway
-        C[Clerk Identity Service]
-        D[FastAPI Sentinel Middleware / Security / Limiter]
+    subgraph SECURITY_GATEWAY ["🛡️ Security, Gateway & Auth"]
+        CLERK["🔐 Clerk Identity Platform (Auth Provider)"]:::gateway
+        GATEWAY["⚡ FastAPI Sentinel Gateway\n(CSP / CORS / Size Guard / Rate Limiter)"]:::gateway
     end
 
-    subgraph Core Backend Services
-        E[User & Profile Router]
-        F[Resume Engine & Generator Router]
-        G[Job Tracker Router]
-        H[Payment & Webhook Router]
+    subgraph BACKEND_SERVICES ["⚙️ FastAPI Micro-Service Routers"]
+        USER_SVC["👤 User & Profile Router\n(/api/users)"]:::service
+        RESUME_SVC["📄 Resume Engine & Generator\n(/api/resumes)"]:::service
+        JOB_SVC["💼 Job Application Tracker\n(/api/jobs)"]:::service
+        PAYMENT_SVC["💳 Billing & Webhook Router\n(/api/webhooks)"]:::service
     end
 
-    subgraph Data & AI Infrastructure
-        I[(Relational Database - MySQL/Postgres)]
-        J[OpenAI GPT-4o Engine]
-        K[Lemon Squeezy Billing Gateway]
+    subgraph INFRASTRUCTURE ["☁️ Data & AI Infrastructure"]
+        DB[("🗄️ Relational DB\n(MySQL / PostgreSQL)")]:::infra
+        AI_ENGINE["🤖 OpenAI GPT-4o Engine\n(Structured JSON Output)"]:::infra
+        BILLING_GW["💰 Lemon Squeezy Gateway\n(Payment & Subscriptions)"]:::infra
     end
 
-    A -->|HTTPS / REST| D
-    B -->|HTTPS / REST| D
-    A -.->|JWT Handshake| C
-    B -.->|JWT Handshake| C
-    D -->|JWKS Verification| C
+    %% Client Interactions
+    WEB -->|"1. HTTPS / REST API"| GATEWAY
+    MOBILE -->|"1. HTTPS / REST API"| GATEWAY
+    WEB -.-|"Auth Handshake (Bearer JWT)"| CLERK
+    MOBILE -.-|"Auth Handshake (Bearer JWT)"| CLERK
 
-    D --> E
-    D --> F
-    D --> G
-    D --> H
+    %% Gateway & Auth Flow
+    GATEWAY -->|"2. Verify JWT via JWKS Public Keys"| CLERK
+    GATEWAY -->|"3. Dispatch Authenticated Request"| USER_SVC
+    GATEWAY -->|"3. Dispatch Authenticated Request"| RESUME_SVC
+    GATEWAY -->|"3. Dispatch Authenticated Request"| JOB_SVC
+    GATEWAY -->|"3. Dispatch Webhook Event"| PAYMENT_SVC
 
-    E --> I
-    F --> I
-    G --> I
-    H --> I
-
-    F -->|Prompt Engineering & JSON Schema| J
-    K -->|Webhook HMAC Events| H
+    %% Service to Persistence / External APIs
+    USER_SVC -->|"Query/Update User State"| DB
+    JOB_SVC -->|"Sync Applications & Tracking Data"| DB
+    RESUME_SVC -->|"Persist Resumes & Versions"| DB
+    RESUME_SVC ==>|"Prompt Engineering & Tailoring"| AI_ENGINE
+    
+    BILLING_GW ==>|"Signed HMAC Webhook Events"| PAYMENT_SVC
+    PAYMENT_SVC -->|"Update Subscription Quota"| DB
 ```
 
 ---
@@ -72,11 +80,11 @@ graph TD
 
 | Layer | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Frontend Framework** | **Next.js 15 (App Router)** | Server & Client Components, SSG/SSR hybrid rendering |
-| **Mobile Runtime** | **Capacitor 6** | Native bridging for Android & iOS builds |
+| **Frontend Framework** | **Next.js (App Router)** | Server & Client Components, SSG/SSR hybrid rendering |
+| **Mobile Runtime** | **Capacitor** | Native bridging for Android & iOS builds |
 | **Styling & UI** | **Vanilla CSS + Lucide Icons** | High-performance CSS custom properties design system |
-| **Backend Framework** | **FastAPI (Python 3.12+)** | High-concurrency async ASGI web server |
-| **ORM & Database** | **SQLAlchemy 2.0 + Alembic** | Async database access & migrations |
+| **Backend Framework** | **FastAPI (Python 3)** | High-concurrency async ASGI web server |
+| **ORM & Database** | **SQLAlchemy + Alembic** | Async database access & migrations |
 | **Authentication** | **Clerk Auth** | Passwordless, OAuth, JWKS JWT decoding |
 | **AI Integration** | **OpenAI API (GPT-4o)** | Automated resume restructuring & score evaluation |
 | **Rate Limiting** | **SlowAPI / Redis Ready** | IP and User ID based API rate throttling |
