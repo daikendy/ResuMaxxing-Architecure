@@ -79,6 +79,43 @@ flowchart TB
 
 ---
 
+## 💳 Enterprise Asynchronous Billing Architecture (Lemon Squeezy)
+
+ResuMaxxing implements an event-driven, non-blocking payment processing architecture featuring **constant-time HMAC signature verification** and **idempotent asynchronous background workers**:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Pilot as User (Client)
+    participant LS as Lemon Squeezy Gateway
+    participant API as FastAPI Backend
+    participant DB as Async Relational DB
+
+    Pilot->>API: 1. Request Upgrade Session (/payments/checkout)
+    API->>LS: 2. Generate Checkout (Attach user_id custom metadata)
+    LS-->>API: 3. Return Secure Checkout URL
+    API-->>Pilot: 4. Redirect to Payment Checkout
+    Pilot->>LS: 5. Submits Payment Details
+    LS-->>Pilot: 6. Show Success & Redirect to App
+    
+    Note over LS,API: Asynchronous Non-Blocking Event Handshake
+    LS->>API: 7. POST Webhook: order_created (X-Signature)
+    API->>API: 8. Constant-Time HMAC-SHA256 Verification (hmac.compare_digest)
+    API->>API: 9. Queue BackgroundTask & Return HTTP 200 OK (<50ms)
+    
+    Note over API,DB: Executed Asynchronously in Standalone Session
+    API->>DB: 10. Query Event Log (Idempotency Guard & Race Condition Check)
+    API->>DB: 11. Atomic Upgrade: User Tier & Quota Allocation
+    DB-->>API: 12. Transaction Committed
+```
+
+### Key Billing Architecture Safeguards:
+- **Instant Webhook Acknowledgment (<50ms):** Returns `HTTP 200 OK` immediately after signature validation, deferring DB upgrades to FastAPI `BackgroundTasks` to prevent gateway retry timeouts.
+- **Standalone Database Session Lifecycle:** Background tasks create independent `AsyncSessionLocal()` instances, avoiding dead-session bugs when HTTP request contexts terminate.
+- **Strict Idempotency Guard:** Records event IDs prior to tier upgrades, ensuring duplicate webhooks or network retries are safely skipped without double-crediting user quotas.
+
+---
+
 ## 🎯 Feature Capability & System Architecture Mapping
 
 The following matrix illustrates how user capabilities map directly to underlying API endpoints, processing engines, and infrastructure layers:
