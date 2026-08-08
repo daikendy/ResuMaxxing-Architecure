@@ -79,6 +79,21 @@ flowchart TB
 
 ---
 
+## 🎯 Feature Capability & System Architecture Mapping
+
+The following matrix illustrates how user capabilities map directly to underlying API endpoints, processing engines, and infrastructure layers:
+
+| Feature Capability | User Trigger | Target Endpoint | Infrastructure & Processing Engine |
+| :--- | :--- | :--- | :--- |
+| **Instant Guest Bullet Tailoring** | Guest Experience Input | `POST /resumes/guest-tailor` | `gpt-4o-mini` (Strict 1-to-1 sentence extraction) |
+| **PDF Resume Roasting** | Public Upload Dropzone | `POST /resumes/guest-roast` | `pdfplumber` text/hyperlink extraction + AI Roast Engine |
+| **Master Resume AI Tailoring** | Target Job Action | `POST /resumes/generate` | `GPT-4o` + Versioning Engine (`ResumeVersion`) |
+| **Technical Skill Gap Analysis** | Job Tracking Hub | `POST /resumes/skill-gap` | Persistent Gap Engine (`SkillGap` model) |
+| **Job Description URL Extraction** | Target URL Input | `POST /jobs/extract-url` | Async Scraper + BeautifulSoup Parser |
+| **Editable DOCX Export** | Vault Export Action | `POST /resumes/{id}/export-docx` | `python-docx` buffer stream (Tier-guarded) |
+
+---
+
 ## 🧠 AI Prompt Engineering & Guardrail Pipeline
 
 ResuMaxxing enforces strict structural and anti-hallucination guardrails across all OpenAI model invocations:
@@ -115,6 +130,7 @@ erDiagram
     USER ||--o{ TRACKED_JOB : "tracks"
     USER ||--o{ RESUME_VERSION : "owns"
     USER ||--o{ USER_ACTIVITY : "logs telemetry"
+    USER ||--o{ VAULT_SNAPSHOT : "stores vaulted snapshots"
     TRACKED_JOB ||--o{ RESUME_VERSION : "generates versions for"
     TRACKED_JOB ||--o{ SKILL_GAP : "flags missing skills"
 
@@ -154,6 +170,14 @@ erDiagram
         string status "flagged | resolved"
     }
 
+    VAULT_SNAPSHOT {
+        int id PK
+        string user_id FK
+        string name
+        json resume_data
+        datetime created_at
+    }
+
     USER_ACTIVITY {
         int id PK
         string user_id FK
@@ -161,6 +185,27 @@ erDiagram
         string details
     }
 ```
+
+---
+
+## 🔒 Enterprise Privacy, GDPR Scrubbing & IDOR Isolation
+
+1. **Automated GDPR Right-to-be-Forgotten (Svix Webhooks):**
+   * Listens for Clerk `user.deleted` cryptographic webhooks (`/api/webhooks/clerk`). Upon verification via Svix, the system automatically triggers cascade deletions across all database tables (`delete_user`), purging user snapshots, activity telemetry, tracked jobs, and resume versions.
+2. **Strict IDOR (Insecure Direct Object Reference) Prevention:**
+   * Every database interaction enforces owner isolation at the SQL query level:
+     ```python
+     select(TrackedJob).filter(TrackedJob.id == job_id, TrackedJob.user_id == current_user["id"])
+     ```
+   * Malicious attempts to read, modify, or delete another user's job target or resume version return an immediate HTTP `404 Not Found`.
+
+---
+
+## 🏛️ Master Vault & Snapshot State Engine
+
+ResuMaxxing incorporates a dedicated **Vault Engine** (`vault_crud.py`) to manage versioning and data snapshots:
+- **Immutable Snapshots (`VaultSnapshot`):** Users can save point-in-time snapshots of master resume states into JSON structures, allowing version comparisons and rollbacks.
+- **Telemetry HUD (`ActivityLog`):** Non-blocking system telemetry captures user application velocity (`TARGET_ACQUIRED`, `TARGET_STATUS_UPDATED`, `ZAP_GENERATED`, `DOCX_EXPORTED`), rendering a real-time activity feed on the dashboard.
 
 ---
 
@@ -204,23 +249,6 @@ ResuMaxxing is engineered to compile seamlessly into native mobile applications:
 
 ---
 
-## 🔒 Security Architecture & Infrastructure Hardening
-
-1. **Decoupled Stateless Auth & Silent Middleware:**
-   - Client requests carry a Bearer JWT issued by Clerk.
-   - FastAPI middleware asynchronously fetches and caches JWKS public keys, validating signatures locally without round-trip latency.
-2. **Security Headers & CSP:**
-   - Strict `Content-Security-Policy` enforcing trusted origins for scripts, frames, and API endpoints.
-   - HSTS (`Strict-Transport-Security`), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`.
-3. **Defense-in-Depth Payload & Input Guards:**
-   - 10MB payload size restriction on incoming backend HTTP streams to mitigate DoS vectors.
-   - Sanitize functions (`sanitize_text`, `sanitize_url`) applied across job inputs.
-   - Custom exception sentinel shielding internal backtraces from production responses.
-4. **Webhook Security:**
-   - Cryptographic signature validation (`X-Signature` HMAC SHA-256 / Svix) on billing and external events.
-
----
-
 ## 🗺️ High-Level API Domain Map
 
 ```
@@ -242,6 +270,7 @@ ResuMaxxing is engineered to compile seamlessly into native mobile applications:
  │    └── DELETE /{id}                  # Delete tracked job & related versions
  └── /webhooks
       └── POST /lemonsqueezy            # Handle Lemon Squeezy subscription webhooks
+      └── POST /clerk                   # Process Svix signed user deletion webhooks
 ```
 
 ---
