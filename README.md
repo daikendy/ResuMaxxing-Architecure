@@ -1,5 +1,7 @@
 # 🚀 ResuMaxxing Architecture & System Design
 
+![ResuMaxxing Banner](./assets/banner.png)
+
 > **The Industrial-Grade AI Career Engine.**  
 > ResuMaxxing is an automated, AI-driven career operating system designed for high-velocity resume tailoring, job application tracking, document roasting/parsing, and automated resume export.
 
@@ -78,6 +80,62 @@ flowchart TB
 
 ---
 
+## 📊 Entity-Relationship & Data Model Overview
+
+```mermaid
+erDiagram
+    USER ||--o{ TRACKED_JOB : "tracks"
+    USER ||--o{ RESUME_VERSION : "owns"
+    USER ||--o{ USER_ACTIVITY : "logs telemetry"
+    TRACKED_JOB ||--o{ RESUME_VERSION : "generates versions for"
+    TRACKED_JOB ||--o{ SKILL_GAP : "flags missing skills"
+
+    USER {
+        string id PK "Clerk User ID"
+        string email
+        string subscription_tier "free | premium_1 | premium_2"
+        int generations_used
+        int generations_limit
+        int bonus_quota
+    }
+
+    TRACKED_JOB {
+        int id PK
+        string user_id FK
+        string company_name
+        string job_title
+        text job_description
+        string status "bookmarked | applied | interviewing | offered | rejected"
+        datetime created_at
+    }
+
+    RESUME_VERSION {
+        int id PK
+        int tracked_job_id FK
+        string user_id FK
+        json resume_content
+        int version_number
+        boolean is_active
+    }
+
+    SKILL_GAP {
+        int id PK
+        int tracked_job_id FK
+        string missing_skill
+        int urgency_weight
+        string status "flagged | resolved"
+    }
+
+    USER_ACTIVITY {
+        int id PK
+        string user_id FK
+        string activity_type "TARGET_ACQUIRED | ZAP_GENERATED | DOCX_EXPORTED"
+        string details
+    }
+```
+
+---
+
 ## 🛠️ Technology Stack Breakdown
 
 | Layer | Technology | Purpose |
@@ -93,6 +151,28 @@ flowchart TB
 | **Document Engine** | **pdfplumber & python-docx** | PDF text/hyperlink extraction & DOCX resume generation |
 | **Rate Limiting** | **SlowAPI / Redis Ready** | IP and User ID based API rate throttling |
 | **Billing Integration**| **Lemon Squeezy API & Svix Webhooks** | Subscription tiering (`premium_1`, `premium_2`) & HMAC events |
+
+---
+
+## ⚡ Performance & High-Concurrency Design
+
+1. **Decoupled JWKS Token Verification:**
+   * Instead of making remote authentication calls per HTTP request, the backend warm-boots by fetching RSA public keys from Clerk once at startup and caches them. Token verification is executed locally in CPU microsecond speeds.
+2. **Non-Blocking Telemetry & Activity Logging:**
+   * Activity logs and telemetry events (`TARGET_ACQUIRED`, `ZAP_GENERATED`) are dispatched asynchronously, preventing database lock contention from delaying primary API responses.
+3. **Optimized PDF Parsing:**
+   * Text extraction during resume roasts avoids expensive vector-layout parsing steps, eliminating CPU freezes on complex PDF documents.
+4. **Async Database Connections (`aiomysql`):**
+   * Uses non-blocking asynchronous pool connections with SQLAlchemy 2.0 to handle high request concurrency without thread pool starvation.
+
+---
+
+## 📱 Cross-Platform & Mobile Architecture (Capacitor)
+
+ResuMaxxing is engineered to compile seamlessly into native mobile applications:
+- **Unified Codebase:** Shared Next.js component layer utilized across Web and Mobile.
+- **Native Capacitor Bridge:** Provides native access to device haptics (`@capacitor/haptics`), native file sharing (`@capacitor/share`), secure preferences storage (`@capacitor/preferences`), and document printing (`@capgo/capacitor-printer`).
+- **Capacitor-Safe Content Security Policy:** Dynamic CSP middleware accommodating `capacitor://localhost` (iOS) and `http://localhost` (Android) origins with strict frame-ancestor shielding (`DENY`).
 
 ---
 
