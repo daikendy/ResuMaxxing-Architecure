@@ -1,4 +1,4 @@
-# 🚀 ResuMaxxing Architecture & System Design
+# ResuMaxxing Architecture & System Design
 
 ![ResuMaxxing Hero Banner](./ResuMaxxing%20Hero.PNG)
 
