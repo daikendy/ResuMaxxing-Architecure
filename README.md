@@ -24,6 +24,11 @@ Designed & Engineered by **[Daikendy](https://github.com/daikendy)**
 ![Clerk](https://img.shields.io/badge/Clerk_Auth_JWKS-6C47FF?style=for-the-badge&logo=clerk&logoColor=white)
 ![Lemon Squeezy](https://img.shields.io/badge/Lemon_Squeezy_HMAC-FFC233?style=for-the-badge&logo=lemonsqueezy&logoColor=black)
 
+<br/>
+<br/>
+
+[![Live Platform Demo](https://img.shields.io/badge/🚀_Live_Platform_Demo-https%3A%2F%2Fresumaxxing.tech-blue?style=for-the-badge&logo=vercel&logoColor=white)](https://resumaxxing.tech)
+
 </div>
 
 ---
