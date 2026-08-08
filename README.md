@@ -1,11 +1,33 @@
+<div align="center">
+
 # ⚡ResuMaxxing Architecture & System Design
+
+> **The Industrial-Grade AI Career Engine**  
+> *Automated, AI-driven career operating system designed for high-velocity resume tailoring, job application tracking, document roasting, and automated resume export.*
+
+Designed & Engineered by **[Daikendy](https://github.com/daikendy)**
 
 ![ResuMaxxing Hero Banner](./ResuMaxxing%20Hero.PNG)
 
-> **The Industrial-Grade AI Career Engine.**  
-> ResuMaxxing is an automated, AI-driven career operating system designed for high-velocity resume tailoring, job application tracking, document roasting/parsing, and automated resume export.
+### 🛠️ Core Technology Stack & Infrastructure
+
+![Next.js](https://img.shields.io/badge/Next.js_App_Router-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Capacitor](https://img.shields.io/badge/Capacitor-119EFF?style=for-the-badge&logo=capacitor&logoColor=white)
+<br/>
+![FastAPI](https://img.shields.io/badge/FastAPI_Async-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy_2.0-D71100?style=for-the-badge&logo=sqlalchemy&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI_GPT--4o-412991?style=for-the-badge&logo=openai&logoColor=white)
+![Clerk](https://img.shields.io/badge/Clerk_Auth_JWKS-6C47FF?style=for-the-badge&logo=clerk&logoColor=white)
+![Lemon Squeezy](https://img.shields.io/badge/Lemon_Squeezy_HMAC-FFC233?style=for-the-badge&logo=lemonsqueezy&logoColor=black)
+
+</div>
 
 ---
+
 
 ## 📌 Executive Summary & Architecture Overview
 
