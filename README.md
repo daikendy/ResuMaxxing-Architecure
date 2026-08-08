@@ -167,6 +167,43 @@ erDiagram
 
 ---
 
+## 💻 Local Development & Quick Start
+
+```bash
+# 1. Clone the Architecture / Code Repository
+git clone https://github.com/daikendy/ResumeMaxxing.git
+cd ResumeMaxxing
+
+# 2. Backend Environment Setup (FastAPI)
+cd backend
+python -m venv venv
+# On Windows:
+./venv/Scripts/activate
+# On Linux/macOS:
+# source venv/bin/activate
+
+pip install -r requirements.txt
+alembic upgrade head
+python main.py
+
+# 3. Frontend Environment Setup (Next.js)
+cd ../frontend
+npm install
+npm run dev
+```
+
+---
+
+## 🚀 Deployment & DevOps Architecture
+
+ResuMaxxing utilizes an automated continuous deployment pipeline:
+- **Frontend & Web Assets:** Deployed on **Vercel** with global edge caching and automatic SSL.
+- **Backend ASGI Engine:** Deployed on **Railway** utilizing high-concurrency Uvicorn workers and environment isolation.
+- **Database Layer:** Managed MySQL / PostgreSQL with connection pooling and automated Alembic schema migration triggers on deploy.
+- **Mobile Builds:** Compiled via Capacitor CLI targeting Android (`.apk` / `.aab`) and iOS (`.ipa`) release targets.
+
+---
+
 ## 📱 Cross-Platform & Mobile Architecture (Capacitor)
 
 ResuMaxxing is engineered to compile seamlessly into native mobile applications:
