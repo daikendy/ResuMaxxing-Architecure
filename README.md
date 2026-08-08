@@ -1,5 +1,6 @@
 # 🚀 ResuMaxxing Architecture & System Design
 
+![ResuMaxxing Hero Banner](./ResuMaxxing%20Hero.PNG)
 
 > **The Industrial-Grade AI Career Engine.**  
 > ResuMaxxing is an automated, AI-driven career operating system designed for high-velocity resume tailoring, job application tracking, document roasting/parsing, and automated resume export.
