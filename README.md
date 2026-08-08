@@ -188,6 +188,14 @@ erDiagram
 
 ---
 
+## 🪵 Production Structured Telemetry & Observability Pipeline
+
+ResuMaxxing implements production-grade structured logging via **`structlog`** (`logging_config.py`):
+- **Structured JSON Logging:** Converts system events, latencies, and route exceptions into standardized ISO-timestamped JSON format for cloud log aggregators (Datadog, Grafana Loki, Railway Logs).
+- **Silent Exception Sentinel:** Captures unhandled runtime errors globally, masking sensitive internal stack traces from production client HTTP responses while streaming full context logs internally.
+
+---
+
 ## 🔒 Enterprise Privacy, GDPR Scrubbing & IDOR Isolation
 
 1. **Automated GDPR Right-to-be-Forgotten (Svix Webhooks):**
@@ -222,6 +230,7 @@ ResuMaxxing incorporates a dedicated **Vault Engine** (`vault_crud.py`) to manag
 | **Authentication** | **Clerk Auth** | Passwordless, OAuth, JWKS JWT decoding |
 | **AI Integration** | **OpenAI API (GPT-4o & GPT-4o-mini)** | Automated resume restructuring, roasting & skill gap analysis |
 | **Document Engine** | **pdfplumber & python-docx** | PDF text/hyperlink extraction & DOCX resume generation |
+| **Logging & Telemetry** | **Structlog (JSON Logging)** | Structured production logging & ISO context rendering |
 | **Rate Limiting** | **SlowAPI / Redis Ready** | IP and User ID based API rate throttling |
 | **Billing Integration**| **Lemon Squeezy API & Svix Webhooks** | Subscription tiering (`premium_1`, `premium_2`) & HMAC events |
 
