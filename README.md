@@ -1,11 +1,11 @@
 <div align="center">
 
-# ⚡ResuMaxxing Architecture & System Design
+# ⚡ ResuMaxxing — AI System Architecture & Public Specification
 
 > **The Industrial-Grade AI Career Engine**  
 > *Automated, AI-driven career operating system designed for high-velocity resume tailoring, job application tracking, document roasting, and automated resume export.*
 
-Designed & Engineered by **[Daikendy](https://github.com/daikendy)**
+Designed & Engineered by **Kenneth [Daikendy](https://github.com/daikendy)**
 
 ![ResuMaxxing Hero Banner](./ResuMaxxing%20Hero.PNG)
 
@@ -366,4 +366,4 @@ Creating a dedicated public repository for system architecture, RFCs, and API sp
 
 ---
 
-*Architected & Developed with precision by [Daikendy](https://github.com/daikendy)*
+*Architected & Developed with precision by Kenneth [Daikendy](https://github.com/daikendy)*
